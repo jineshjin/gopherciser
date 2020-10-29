@@ -78,6 +78,10 @@ func (app *App) setSheetList(sessionState SessionState, sl *SheetList) {
 // GetBookmarkList update bookmark list for app
 func (app *App) GetBookmarkList(sessionState SessionState, actionState *action.State) (*BookmarkList, error) {
 	if app.bookmarkList != nil {
+		// force new get layout every time we ask
+		if err := sessionState.SendRequest(actionState, app.bookmarkList.UpdateLayout); err != nil {
+			return nil, errors.WithStack(err)
+		}
 		return app.bookmarkList, nil
 	}
 
