@@ -3,6 +3,7 @@ package scenario
 import (
 	"context"
 	"fmt"
+
 	"github.com/qlik-oss/gopherciser/appstructure"
 
 	"github.com/pkg/errors"
@@ -131,6 +132,9 @@ func (settings DeleteBookmarkSettings) Execute(sessionState *session.State, acti
 			actionState.AddErrors(errors.New("could not find specified bookmark"))
 			return
 		}
+
+		// temporarly for test only: remove from object list before destroy to avoid push race
+		sessionState.ClearSubscribedObjects([]string{id})
 
 		err = settings.destroyBookmarkById(sessionState, actionState, uplink, id)
 		if err != nil {
