@@ -134,7 +134,7 @@ func (settings DeleteBookmarkSettings) Execute(sessionState *session.State, acti
 		}
 
 		// temporarly for test only: remove from object list before destroy to avoid push race
-		sessionState.ClearSubscribedObjects([]string{id})
+		_ = sessionState.ClearSubscribedObjects([]string{id})
 
 		err = settings.destroyBookmarkById(sessionState, actionState, uplink, id)
 		if err != nil {
