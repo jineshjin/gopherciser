@@ -190,7 +190,7 @@ func (settings ElasticUploadAppSettings) Execute(sessionState *session.State, ac
 		}
 		fileId := fileUrlSplit[len(fileUrlSplit)-1]
 
-		downloadReq := sessionState.Rest.FireOffGet(fmt.Sprintf("%v/api/v1/temp-contents/files/%s", restUrl, fileId), actionState, false)
+		downloadReq := sessionState.Rest.FireOffGet(fmt.Sprintf("%v/api/v1/temp-contents/%s", restUrl, fileId), actionState, false)
 		if sessionState.Wait(actionState) {
 			return // we had an error
 		}
