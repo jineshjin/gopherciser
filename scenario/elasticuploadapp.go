@@ -188,7 +188,16 @@ func (settings ElasticUploadAppSettings) Execute(sessionState *session.State, ac
 			actionState.AddErrors(errors.Errorf("empty file url"))
 			return
 		}
-		// fileId := fileUrlSplit[len(fileUrlSplit)-1]
+		fileId := fileUrlSplit[len(fileUrlSplit)-1]
+
+		downloadReq := sessionState.Rest.FireOffGet(fmt.Sprintf("%v/api/v1/temp-contents/files/%s", restUrl, fileId), actionState, false)
+		if sessionState.Wait(actionState) {
+			return // we had an error
+		}
+		if err := session.CheckResponseStatus(downloadReq, []int{200}); err != nil {
+			actionState.AddErrors(errors.Wrap(err, "failed to download app"))
+			return
+		}
 
 		query := url.Values{}
 		query.Add("fallbackname", filepath.Base(settings.Filename))
