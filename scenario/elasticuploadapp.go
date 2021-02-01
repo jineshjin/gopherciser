@@ -106,7 +106,7 @@ func (settings ElasticUploadAppSettings) Execute(sessionState *session.State, ac
 		return
 	}
 
-	destSpace, err := settings.ResolveDestinationSpace(sessionState, actionState, restUrl)
+	_ /*destSpace*/, err = settings.ResolveDestinationSpace(sessionState, actionState, restUrl)
 	if err != nil {
 		actionState.AddErrors(err)
 		return
@@ -121,7 +121,7 @@ func (settings ElasticUploadAppSettings) Execute(sessionState *session.State, ac
 		_ = file.Close()
 	}()
 
-	var postApp session.RestRequest
+	// var postApp session.RestRequest
 	switch settings.Mode {
 	case Tus:
 		host, err := connection.GetHost()
@@ -188,56 +188,56 @@ func (settings ElasticUploadAppSettings) Execute(sessionState *session.State, ac
 			actionState.AddErrors(errors.Errorf("empty file url"))
 			return
 		}
-		fileId := fileUrlSplit[len(fileUrlSplit)-1]
+		// fileId := fileUrlSplit[len(fileUrlSplit)-1]
 
 		query := url.Values{}
 		query.Add("fallbackname", filepath.Base(settings.Filename))
 
-		parameters := ""
-		if destSpace != nil {
-			parameters = fmt.Sprintf("&spaceId=%v", destSpace.ID)
-		}
-		postApp = session.RestRequest{
-			Method:      session.POST,
-			ContentType: "application/json",
-			Destination: fmt.Sprintf("%v/api/v1/apps/import?fileId=%v&%v%v", restUrl, fileId, query.Encode(), parameters),
-		}
+		// parameters := ""
+		// if destSpace != nil {
+		// 	parameters = fmt.Sprintf("&spaceId=%v", destSpace.ID)
+		// }
+		// postApp = session.RestRequest{
+		// 	Method:      session.POST,
+		// 	ContentType: "application/json",
+		// 	Destination: fmt.Sprintf("%v/api/v1/apps/import?fileId=%v&%v%v", restUrl, fileId, query.Encode(), parameters),
+		// }
 	case Legacy:
-		parameters := ""
-		if destSpace != nil {
-			parameters = fmt.Sprintf("?spaceId=%v", destSpace.ID)
-		}
-		postApp = session.RestRequest{
-			Method:        session.POST,
-			ContentType:   "application/octet-stream",
-			Destination:   fmt.Sprintf("%v/api/v1/apps/import%v", restUrl, parameters),
-			ContentReader: file,
-		}
+		// parameters := ""
+		// if destSpace != nil {
+		// 	parameters = fmt.Sprintf("?spaceId=%v", destSpace.ID)
+		// }
+		// postApp = session.RestRequest{
+		// 	Method:        session.POST,
+		// 	ContentType:   "application/octet-stream",
+		// 	Destination:   fmt.Sprintf("%v/api/v1/apps/import%v", restUrl, parameters),
+		// 	ContentReader: file,
+		// }
 	default:
 		actionState.AddErrors(errors.Errorf("unknown upload format <%v>", settings.Mode))
 		return
 	}
 
-	sessionState.Rest.QueueRequest(actionState, true, &postApp, sessionState.LogEntry)
-	if sessionState.Wait(actionState) {
-		return // we had an error
-	}
-	if postApp.ResponseStatusCode != http.StatusOK {
-		actionState.AddErrors(errors.Errorf("Failed to upload app payload: %d <%s>", postApp.ResponseStatusCode, postApp.ResponseBody))
-		return
-	}
+	// sessionState.Rest.QueueRequest(actionState, true, &postApp, sessionState.LogEntry)
+	// if sessionState.Wait(actionState) {
+	// 	return // we had an error
+	// }
+	// if postApp.ResponseStatusCode != http.StatusOK {
+	// 	actionState.AddErrors(errors.Errorf("Failed to upload app payload: %d <%s>", postApp.ResponseStatusCode, postApp.ResponseBody))
+	// 	return
+	// }
 
-	appImportResponseRaw := postApp.ResponseBody
-	var appImportResponse elasticstructs.AppImportResponse
-	if err := jsonit.Unmarshal(appImportResponseRaw, &appImportResponse); err != nil {
-		actionState.AddErrors(errors.Wrapf(err, "failed unmarshaling app import response data: %s", appImportResponseRaw))
-		return
-	}
+	// appImportResponseRaw := postApp.ResponseBody
+	// var appImportResponse elasticstructs.AppImportResponse
+	// if err := jsonit.Unmarshal(appImportResponseRaw, &appImportResponse); err != nil {
+	// 	actionState.AddErrors(errors.Wrapf(err, "failed unmarshaling app import response data: %s", appImportResponseRaw))
+	// 	return
+	// }
 
-	err = AddAppToCollection(settings.CanAddToCollection, sessionState, actionState, appImportResponse, restUrl)
-	if err != nil {
-		actionState.AddErrors(err)
-	}
+	// err = AddAppToCollection(settings.CanAddToCollection, sessionState, actionState, appImportResponse, restUrl)
+	// if err != nil {
+	// 	actionState.AddErrors(err)
+	// }
 }
 
 func AddAppToCollection(settings CanAddToCollection, sessionState *session.State, actionState *action.State, appImportResponse elasticstructs.AppImportResponse, host string) error {
