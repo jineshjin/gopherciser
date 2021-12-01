@@ -525,7 +525,7 @@ func askHubAdvisor(sessionState *session.State, actionState *action.State, host 
 
 	req := sessionState.Rest.PostWithHeadersAsync(fmt.Sprintf("%v/%v", host, hubAdvisorEndpoint), actionState, sessionState.LogEntry, rawReqContent,
 		map[string]string{
-			"x-qlik-client-capability": "static",
+			"x-qlik-client-capability": "render",
 		},
 		&session.ReqOptions{
 			ExpectedStatusCode: []int{http.StatusOK, http.StatusCreated},
