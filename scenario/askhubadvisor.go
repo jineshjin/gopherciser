@@ -112,7 +112,6 @@ type (
 		GenerateNarrative         bool                `json:"generateNarrative"`
 		EnableFollowups           bool                `json:"enableFollowups"`
 		EnableConversationContext bool                `json:"enableConversationContext"`
-		ConversationContext       conversationContext `json:"conversationContext"`
 		SelectedRecommendation    *recommendation     `json:"selectedRecommendation"`
 		ItemTokens                []interface{}       `json:"itemTokens"`
 		ValueTokens               []interface{}       `json:"valueTokens"`
@@ -125,7 +124,6 @@ type (
 	conversationalResponse struct {
 		Apps                []app               `json:"apps"`
 		Responses           []responseType      `json:"responses"`
-		ConversationContext conversationContext `json:"conversationContext"`
 	}
 
 	responseType struct {
@@ -133,13 +131,6 @@ type (
 		FollowupSentence string `json:"followupSentence"`
 		ImageURL         string `json:"imageUrl"`
 		TypedInfo
-	}
-
-	conversationContext struct {
-		App             *app            `json:"app"`
-		Entity          json.RawMessage `json:"entity,omitempty"`
-		ParserResults   json.RawMessage `json:"parserResults,omitempty"`
-		Recommendations json.RawMessage `json:"recommendations,omitempty"`
 	}
 
 	recommendation struct {
@@ -320,19 +311,6 @@ func Language(lang language) HubAdvisorOption {
 func App(app *app) HubAdvisorOption {
 	return func(q *hubAdvisorQuery) {
 		q.App = app
-	}
-}
-
-func ConversationContext(convContext conversationContext) HubAdvisorOption {
-	return func(q *hubAdvisorQuery) {
-		q.EnableConversationContext = true
-		q.ConversationContext = convContext
-		if q.ConversationContext.App != nil {
-			q.App = q.ConversationContext.App
-			if q.ConversationContext.App.ID != "" {
-				q.ConversationContext.App.URL = fmt.Sprintf("/sense/app/%s/insightadvisor", q.ConversationContext.App.ID)
-			}
-		}
 	}
 }
 
@@ -590,17 +568,16 @@ func unmarshalRandomInfoValue(randomizer helpers.Randomizer, infoValues []json.R
 	return nil
 }
 
-func createFollowupQuery(sessionState *session.State, actionState *action.State, res *responseType, convContext conversationContext, appToPick string, language language) *followupQuery {
+func createFollowupQuery(sessionState *session.State, actionState *action.State, res *responseType, appToPick string, language language) *followupQuery {
 	if res.FollowupSentence == "" {
 		return nil
 	}
-	currentApp := convContext.App
 
-	// if current app context exist and followup sentence contains no variables which need to be substituted
-	if currentApp != nil && currentApp.ID != "" && currentApp.Name != "" && !containVariable(res.FollowupSentence) {
+	// if followup sentence contains no variables which need to be substituted
+	if !containVariable(res.FollowupSentence) {
 		return &followupQuery{
 			typ:   followupSentence,
-			query: HubAdvisorQuery(res.FollowupSentence, Language(language), ConversationContext(convContext)),
+			query: HubAdvisorQuery(res.FollowupSentence, Language(language)),
 		}
 	}
 
@@ -668,7 +645,6 @@ func createFollowupQuery(sessionState *session.State, actionState *action.State,
 		fq.query = HubAdvisorQuery(
 			substituteVariable(res.FollowupSentence, pickedInfoValue),
 			Language(language),
-			ConversationContext(convContext),
 		)
 		return fq
 
@@ -696,7 +672,6 @@ func createFollowupQuery(sessionState *session.State, actionState *action.State,
 				substituteVariable(res.FollowupSentence, pickedRecommendation.Name),
 				SelectedRecommendation(pickedRecommendation),
 				Language(language),
-				ConversationContext(convContext),
 			),
 		}
 
@@ -711,7 +686,7 @@ func createFollowupQueries(sessionState *session.State, actionState *action.Stat
 	followupQueries := make([]*followupQuery, 0, len(hubAdvisorResponse.ConversationalResponse.Responses))
 	for _, res := range hubAdvisorResponse.ConversationalResponse.Responses {
 		result := &res
-		q := createFollowupQuery(sessionState, actionState, result, hubAdvisorResponse.ConversationalResponse.ConversationContext, appToPick, language)
+		q := createFollowupQuery(sessionState, actionState, result, appToPick, language)
 		if q != nil {
 			followupQueries = append(followupQueries, q)
 		}
