@@ -666,7 +666,6 @@ func createFollowupQuery(sessionState *session.State, actionState *action.State,
 		fq.query = HubAdvisorQuery(
 			substituteVariable(res.FollowupSentence, pickedInfoValue),
 			Language(language),
-			ConversationContext(convContext),
 		)
 		return fq
 
@@ -694,7 +693,6 @@ func createFollowupQuery(sessionState *session.State, actionState *action.State,
 				substituteVariable(res.FollowupSentence, pickedRecommendation.Name),
 				SelectedRecommendation(pickedRecommendation),
 				Language(language),
-				ConversationContext(convContext),
 			),
 		}
 
