@@ -2,7 +2,6 @@ package scenario
 
 import (
 	"bufio"
-	"github.com/goccy/go-json"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,6 +12,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/goccy/go-json"
 	"github.com/pkg/errors"
 	"github.com/qlik-oss/gopherciser/action"
 	"github.com/qlik-oss/gopherciser/atomichandlers"
@@ -136,10 +136,8 @@ type (
 	}
 
 	conversationContext struct {
-		App             *app            `json:"app"`
-		Entity          json.RawMessage `json:"entity,omitempty"`
-		ParserResults   json.RawMessage `json:"parserResults,omitempty"`
-		Recommendations json.RawMessage `json:"recommendations,omitempty"`
+		App    *app            `json:"app"`
+		Entity json.RawMessage `json:"entity,omitempty"`
 	}
 
 	recommendation struct {
@@ -600,7 +598,7 @@ func createFollowupQuery(sessionState *session.State, actionState *action.State,
 	if currentApp != nil && currentApp.ID != "" && currentApp.Name != "" && !containVariable(res.FollowupSentence) {
 		return &followupQuery{
 			typ:   followupSentence,
-			query: HubAdvisorQuery(res.FollowupSentence, Language(language), ConversationContext(convContext)),
+			query: HubAdvisorQuery(res.FollowupSentence, Language(language)),
 		}
 	}
 
